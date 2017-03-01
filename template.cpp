@@ -1,9 +1,6 @@
 #include <iostream>
 #include <cassert>
 
-using std::cin;
-using std::cout;
-
 /*
  * 
  * 
@@ -14,6 +11,9 @@ using std::cout;
 
 int main(int argc, char *argv[])
 {
+
+    using std::cin;
+    using std::cout;
     
 
     return 0;
