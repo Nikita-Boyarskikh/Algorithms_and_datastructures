@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     using std::cout;
     using std::cin;
 
-    int n;
+    int n = 0;
     assert(cin>>n);
 
     for(int i = 2; i*i <= n; i++)
