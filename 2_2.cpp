@@ -16,7 +16,7 @@
  */
 
 // Структура, хранящая декартовы двухмерные координаты x и y
-coord struct {
+struct coord {
     int x;
     int y;
 };
@@ -59,14 +59,14 @@ int main(int argc, char *argv[])
 float square(coord *vertices, int number)
 {
     int result = 0;
-    int delta_x, delta_y;
+    int delta_x, sum_y;
     for(int i=1; i<number; i++) {
         delta_x = vertices[i-1].x - vertices[i].x;
-        delta_y = vertices[i-1].y - vertices[i].y;
-        result += delta_x * delta_y;
+        sum_y = vertices[i-1].y + vertices[i].y;
+        result += delta_x * sum_y;
     }
     delta_x = vertices[number-1].x - vertices[0].x;
-    delta_y = vertices[number-1].y - vertices[0].y;
-    result += delta_x * delta_y;
+    sum_y = vertices[number-1].y + vertices[0].y;
+    result += delta_x * sum_y;
     return result/2;
 }
