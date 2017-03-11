@@ -2,7 +2,7 @@
 #include <cassert>
 
 /*
- * Вычислить площадь выпуклого n-угольника, заданного координатами своих вершин в порядке обхода против числовой стрелки.
+ * Вычислить площадь выпуклого n-угольника, заданного координатами своих вершин в порядке обхода по числовой стрелки.
  * n < 1000, координаты < 10000.
  * Указание. Для вычисления площади n-угольника можно посчитать сумму ориентированных площадей
  * трапеций под каждой стороной многоугольника.
@@ -22,13 +22,14 @@ struct coord {
 };
 
 // Прототип функции, считающей площадь замкнутого многоугольника с количеством вершин number.
-// Координаты вершин находятся в массиве vertices, перечисленные против часовой стрелки.
+// Координаты вершин находятся в массиве vertices, перечисленные по часовой стрелки.
 float square(coord *vertices, int number);
 
 int main(int argc, char *argv[])
 {
     using std::cin;
     using std::cout;
+    using std::endl;
 
     int n = 0;
     assert(cin>>n);
@@ -48,14 +49,14 @@ int main(int argc, char *argv[])
         vertices[i].y = y;
     }
 
-    cout<<square(vertices, n);
+    cout<<square(vertices, n)<<endl;
 
     delete[] vertices;
     return 0;
 }
 
 // Функция, считающая площадь замкнутого многоугольника с количеством вершин number.
-// Координаты вершин находятся в массиве vertices, перечисленные против часовой стрелки.
+// Координаты вершин находятся в массиве vertices, перечисленные по часовой стрелки.
 float square(coord *vertices, int number)
 {
     int result = 0;
@@ -68,5 +69,5 @@ float square(coord *vertices, int number)
     delta_x = vertices[number-1].x - vertices[0].x;
     sum_y = vertices[number-1].y + vertices[0].y;
     result += delta_x * sum_y;
-    return result/2;
+    return -result/2.0;
 }
