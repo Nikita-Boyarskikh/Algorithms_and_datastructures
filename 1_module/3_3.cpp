@@ -108,16 +108,16 @@ size_t intersection(int *first, size_t first_size, int *second, size_t second_si
         size_t powered2 = 1;
         size_t right = last_find + 1;
 
-        do {
-            powered2 *= 2;
-            right += powered2;
-
+        while(!find && right < first_size && first[right] <= second[i]) {
             // Досрочно завершаем поиск, если при перемотке наткнулись на искомый элемент
             if(first[right] == second[i]) {
                 find = true;
                 pos = right;
             }
-        } while(!find && right < first_size && first[right] < second[i]);
+
+            powered2 *= 2;
+            right += powered2;
+        }
 
         // Вычисляем левую границу поиска
         int left = right - powered2;
