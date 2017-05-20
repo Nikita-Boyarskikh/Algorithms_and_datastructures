@@ -113,9 +113,9 @@ size_t Hasher<T>::operator() ( T str, size_t size, bool type )
 {
     size_t hash = 0;
     for( size_t i = 0; i < str.size(); i++ ) {
-        hash = hash*(type ? HASH_CONST1 : HASH_CONST2) + str[i];
+        hash = ( 2*(hash*(type ? HASH_CONST1 : HASH_CONST2) + str[i]) + 1 ) % size;
     }
-    return hash % size;
+    return hash;
 }
 
 template <class T, class H>
@@ -134,8 +134,6 @@ bool Set<T, H>::add( T data )
 {
     if( elems >= size * 3/4 ) {
         expand();
-//        for(int o = 0; o < size; o++) std::cout << arr[o] << ' ';
-//        std::cout << std::endl;
     }
 
     bool finded = false;
@@ -155,7 +153,6 @@ bool Set<T, H>::add( T data )
             }
         }
     }
-
     if( finded ) {
         arr[indx] = data;
         elems++;
