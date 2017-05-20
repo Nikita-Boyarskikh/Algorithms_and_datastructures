@@ -43,8 +43,7 @@ class AVLTree {
     node* rotate_right( node*& tree );
     void fix_depth( node*& tree );
     void fix_size( node* tree );
-    node* findmin( node* tree );
-    node* removemin( node* tree );
+    node* removemin( node* tree, node*& parent );
     size_t depth( node* tree );
     int bfactor( node* tree );
 
@@ -52,7 +51,7 @@ class AVLTree {
     AVLTree() : root(nullptr) {};
     void add( T elem );
     void del( T elem );
-    T get_k_stat( size_t k_stat );
+    T get_k_stat( T k_stat );
 };
 
 int main(int argc, char *argv[])
@@ -62,9 +61,10 @@ int main(int argc, char *argv[])
     assert( n >= 0 );
 
     AVLTree<long long> tree;
-    for( long long i = 0; i < n; i++ ) {
+    for( size_t i = 0; i < (size_t)n; i++ ) {
         long long A, k;
         std::cin >> A >> k;
+        assert(k >= 0);
         if( A < 0 ) {
             tree.del(-A);
         } else {
@@ -123,8 +123,9 @@ typename AVLTree<T>::node* AVLTree<T>::_remove( T elem, typename AVLTree<T>::nod
         node* r = tree->right;
         delete tree;
         if( !r ) return l;
-        node* min = findmin(r);
-        min->right = removemin(r);
+        node* min;
+        node* minright = removemin(r, min);
+        min->right = minright;
         min->left = l;
         return balance( min );
     }
@@ -205,35 +206,29 @@ void AVLTree<T>::fix_depth( typename AVLTree<T>::node*& tree )
 }
 
 template <class T>
-T AVLTree<T>::get_k_stat( size_t k_stat )
+T AVLTree<T>::get_k_stat( T k_stat )
 {
     node* cur = root;
-    long long k = k_stat;
-    while( cur && k >= 0 ) {
-        size_t l_size = cur->left ? cur->left->size : 0;
-        if( l_size == k ) {
+    while( cur && k_stat >= 0 ) {
+        T l_size = cur->left ? cur->left->size : 0;
+        if( l_size == k_stat ) {
             return cur->key;
         }
-        cur = (l_size > k ? cur->left : cur->right);
-        if( l_size < k ) {
-            k -= l_size + 1;
+        cur = (l_size > k_stat ? cur->left : cur->right);
+        if( l_size < k_stat ) {
+            k_stat -= l_size + 1;
         }
     }
     throw std::exception(); //"K'th order statistics not found"
 }
 
 template <class T>
-typename AVLTree<T>::node* AVLTree<T>::findmin( typename AVLTree<T>::node* tree )
-{
-    return (tree->left ? findmin( tree->left ) : tree);
-}
-
-template <class T>
-typename AVLTree<T>::node* AVLTree<T>::removemin( typename AVLTree<T>::node* tree )
+typename AVLTree<T>::node* AVLTree<T>::removemin( typename AVLTree<T>::node* tree, typename AVLTree<T>::node*& parent )
 {
     if( !tree->left ) {
+        parent = tree;
         return tree->right;
     }
-    tree->left = removemin( tree->left );
-    return balance( tree );
+    tree->left = removemin( tree->left, parent );
+    return balance(tree);
 }
