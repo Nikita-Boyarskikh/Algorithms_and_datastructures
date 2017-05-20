@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cassert>
+#include <cstring>
 
 /*
  * АТЛЕТЫ
@@ -30,12 +32,188 @@
  * |  4 5                   |                           |
  */
 
+// Ограничивающие значения по условию
+#define MAX_COUNT 100000
+#define MAX_VALUE 2000000
+
+// Каждый атлет характеризуется своей массой и силой
+struct athlete {
+    long weight, force;
+};
+
+// Начальный размер массива атлетов
+const int BUF_SIZE = 8;
+
+// Ввод и валидация данных.
+// Получает с STDIN и записывает в массив данные.
+size_t input_data(athlete *athletes, long &counter);
+
+// Сортировка слиянием.
+// Сортирует массив athletes длины count по force по возрастанию и weight по возрастанию.
+// Возвращает указатель на отсортированный массив.
+athlete * MergeSort(athlete * athletes, const long count);
+
+// Непосредственно реализация сортировки слиянием.
+// Сортирует массив athletes от left до right, используя буфер buffer.
+// Возвращает указатель на отсортированный массив.
+athlete * sort(athlete * athletes, athlete * buffer, long left, long right);
+
+// Реаллоцирует память под массив athletes
+void ath_realloc(athlete **athletes, long &buf_size);
+
 int main(int argc, char *argv[])
 {
 
     using std::cin;
     using std::cout;
-    
+    using std::endl;
+
+    // Инициализация значений и выделение памяти
+    long buf_size = BUF_SIZE, counter = 0, result = 1;
+    athlete *athletes = new athlete[buf_size];
+    assert(athletes);
+
+    // Ввод данных
+    input_data(athletes, counter);
+
+    if(counter < 2) {
+        delete[] athletes;
+        cout<<counter<<endl;
+        return 0;
+    }
+
+    // Сортировка атлетов по массе и силе по возрастанию
+    athletes = MergeSort(athletes, counter);
+    assert(athletes);
+
+    long long total_weight = athletes[counter - 1].weight;
+            cout<<athletes[counter-1].weight<<' '<<athletes[counter-1].force<<endl;
+
+    // Подсчёт количества атлетов, удовлетворяющих условиям задачи
+    for(long i = counter - 1; i > 0; i--) {
+            cout<<athletes[i-1].weight<<' '<<athletes[i-1].force<<endl;
+        if(athletes[i-1].force >= total_weight) {
+            total_weight += athletes[i-1].weight;
+            result++;
+        }
+    }
+
+    // Вывод результатов
+    assert(cout<<result<<endl);
+
+    delete[] athletes;
 
     return 0;
+}
+
+// Ввод и валидация данных
+size_t input_data(athlete *athletes, long &counter) {
+    long athletes_size = BUF_SIZE * sizeof(athletes[0]);
+    while(std::cin>>athletes[counter].weight>>athletes[counter].force) {
+        // Валидация данных
+        assert(athletes[counter].weight <= MAX_VALUE);
+        assert(athletes[counter].force <= MAX_VALUE);
+        assert(++counter <= MAX_COUNT);
+
+        // Реаллокация памяти в случае её нехватки
+        if(counter == BUF_SIZE) {
+            ath_realloc(&athletes, athletes_size);
+        }
+    }
+    return athletes_size;
+}
+
+// Реаллокация памяти
+void ath_realloc(athlete **athletes, long &buf_size) {
+    athlete *temp_buf = new athlete[buf_size *= 2];
+    assert(temp_buf);
+    assert(memmove(temp_buf, *athletes, buf_size));
+    delete[] *athletes;
+    *athletes = temp_buf;
+}
+
+// Сортировка слиянием
+// Сортирует массив athletes длины count по weight по возрастанию и force по возрастанию.
+// Возвращает указатель на отсортированный массив.
+athlete * MergeSort(athlete * athletes, const long count)
+{
+    assert(athletes);
+    assert(count <= MAX_COUNT);
+
+    athlete *buffer = new athlete[count];
+    assert(buffer);
+    memcpy(buffer, athletes, count*sizeof(athletes[0]));
+
+    athletes = sort(athletes, buffer, 0, count - 1);
+    for(int i = 0; i<count; i++)
+            std::cout<<athletes[i].weight<<' '<<athletes[i].force<<std::endl;
+
+    delete[] buffer;
+
+    return athletes;
+}
+
+// Непосредственно реализация сортировки слиянием.
+// Сортирует массив athletes от left до right, используя буфер buffer.
+// Возвращает указатель на отсортированный массив.
+athlete * sort(athlete * athletes, athlete * buffer, long left, long right)
+{
+    assert(athletes);
+    assert(buffer);
+    assert(left <= right);
+
+    if(left == right) {
+        athletes[left] = buffer[left];
+        return athletes;
+    }
+
+    long middle = (right + left)/2;
+
+    // Сортируем отдельно левую и правую половину
+    athlete *left_half = sort(athletes, buffer, left, middle);
+    assert(left_half);
+
+    athlete *right_half = sort(athletes, buffer, middle + 1, right);
+    assert(right_half);
+
+    // Сливаем 2 отсортированные половины
+    athlete *target = (left_half == buffer) ? athletes : buffer;
+
+    long l_cur = left, r_cur = middle + 1;
+    for(long i = left; i <= right; i++) {
+        if(l_cur <= middle && r_cur <= right) {
+            // Если сила атлета из левой половины больше, пишем его на выход
+            if(left_half[l_cur].weight < right_half[r_cur].weight) {
+                target[i] = left_half[l_cur];
+                l_cur++;
+            }
+            // Если сила атлета из правой половины больше, пишем его на выход
+            else if(left_half[l_cur].weight > right_half[r_cur].weight) {
+                target[i] = right_half[r_cur];
+                r_cur++;
+            // При равных силах сравниваем массы
+            } else {
+                // Если масса атлета из левой половины меньше, пишем его на выход
+                if(left_half[l_cur].force < right_half[r_cur].force) {
+                    target[i] = left_half[l_cur];
+                    l_cur++;
+                // Если масса атлета из правой половины меньше, пишем его на выход
+                } else {
+                    target[i] = right_half[r_cur];
+                    r_cur++;
+                }
+            }
+        }
+        // Дописываем оставшихся атлетов из левой половины
+        else if (l_cur <= middle) {
+            target[i] = left_half[l_cur];
+            l_cur++;
+        }
+        // Дописываем оставшихся атлетов из правой половины
+        else {
+            target[i] = right_half[r_cur];
+            r_cur++;
+        }
+    }
+    return target;
 }

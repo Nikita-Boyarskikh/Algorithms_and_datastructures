@@ -1,6 +1,7 @@
 #include <iostream>
-#include <cstring>
+#include <cstdlib>
 #include <cassert>
+#include <cstring>
 
 /*
  * Написать структуру данных, обрабатывающую команы push* и pop*.
@@ -54,22 +55,23 @@ class Exception : public std::exception {};
 class ErrAlloc : public Exception {};
 
 // Начальный размер буфера
-const int CHANK_SIZE = 64;
+const int CHANK_SIZE = 2;
 
 // Интерфейс класса Дек
 class Dequeue {
   private:
-    size_t head;
-    size_t tail;
-    size_t size;
-    int *data;
+    unsigned long long head;
+    unsigned long long tail;
+    unsigned long long size;
+    unsigned long long *data;
+    void expand_data_size();
   public:
     Dequeue();
     ~Dequeue();
-    void push_front(int elem);
-    int pop_front();
-    void push_back(int elem);
-    int pop_back();
+    void push_front(unsigned long long elem);
+    long long pop_front();
+    void push_back(unsigned long long elem);
+    long long pop_back();
 };
 
 }
@@ -81,28 +83,33 @@ int main(int argc, char *argv[])
 
     using std::cin;
     using std::cout;
+    using std::endl;
 
-    int n=0;
+    long long n=0;
     assert(cin>>n);
+    assert(n > 0);
     assert(n <= 1000000);
 
     Deq::Dequeue dequeue;
 
     int command;
-    int parameter;
-    for(int i=0; i<n; i++) {
+    long long parameter;
+    for(long long i=0; i<n; i++) {
         assert(cin>>command);
         assert(command > 0);
         assert(command <= 4);
         assert(cin>>parameter);
+//////////////////////////////////
+        long lol;
+/////////////////////////
         try {
             switch(command) {
               case push_front:
                 dequeue.push_front(parameter);
                 break;
               case pop_front:
-                if(dequeue.pop_front() != parameter) {
-                    cout<<"NO";
+                lol = dequeue.pop_front(); if(lol != parameter) {
+                    cout<<"NO"<<lol<<endl;
                     return 0;
                 }
                 break;
@@ -110,8 +117,8 @@ int main(int argc, char *argv[])
                 dequeue.push_back(parameter);
                 break;
               case pop_back:
-                if(dequeue.pop_back() != parameter) {
-                    cout<<"NO";
+                lol = dequeue.pop_back(); if(lol != parameter) {
+                    cout<<"NO"<<lol<<endl;
                     return 0;
                 }
                 break;
@@ -123,7 +130,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    cout<<"YES";
+    cout<<"YES"<<endl;
     return 0;
 }
 
@@ -134,7 +141,7 @@ Deq::Dequeue::Dequeue() {
     tail = 0;
     size = Deq::CHANK_SIZE;
     data = nullptr;
-    data = new int[Deq::CHANK_SIZE];
+    data = new unsigned long long[Deq::CHANK_SIZE];
     if(!data) {
         throw new ErrAlloc;
     }
@@ -146,48 +153,62 @@ Deq::Dequeue::~Dequeue() {
     }
 }
 
-void Deq::Dequeue::push_front(int elem) {
-    head = (Deq::CHANK_SIZE + head - 1) % Deq::CHANK_SIZE;
-    data[head] = elem;
-    if( (tail == (Deq::CHANK_SIZE - 1) && head == 0) || head - tail == 1) {
-        int *temp = new int[size *= 2];
-        if(!temp) {
-            throw new Deq::ErrAlloc;
-        }
-        if(!memcpy(temp, &data[head], size/2) || !memcpy(&temp[size/2], data, size - head)) {
-            delete[] temp;
-            delete[] data;
-            throw new Deq::ErrAlloc;
-        }
-        delete[] data;
-        data = temp;
+void Deq::Dequeue::push_front(unsigned long long elem) {
+    std::cout<<"head = "<<head<<std::endl<<"tail  = "<<tail<<std::endl<<"data = ";
+    for(size_t i = 0; i < size; i++) std::cout<<data[i]<<" ";
+    std::cout<<std::endl;
+    size_t temp_ptr = (size + head - 1) % size;
+    if( (temp_ptr == (size - 1) && tail == 0) || tail - temp_ptr == 1) {
+        expand_data_size();
+        temp_ptr = (size + head - 1) % size;
     }
+    head = temp_ptr;
+    data[head] = elem;
 }
 
-int Deq::Dequeue::pop_front() {
+long long Deq::Dequeue::pop_front() {
+    std::cout<<"head = "<<head<<std::endl<<"tail  = "<<tail<<std::endl<<"data = ";
+    for(size_t i = 0; i < size; i++) std::cout<<data[i]<<" ";
+    std::cout<<std::endl;
     if(head == tail) {
         return -1;
     }
-    int result = data[head];
-    head = (head + 1) % Deq::CHANK_SIZE;
+    unsigned long long result = data[head];
+    head = (head + 1) % size;
     return result;
 }
 
-void Deq::Dequeue::push_back(int elem) {
-    data[tail] = elem;
-    tail = (tail + 1) % Deq::CHANK_SIZE;
-    if( ( (tail == (Deq::CHANK_SIZE - 1)) && (head == 0) ) || (head - tail == 1) ) {
-        if( !realloc(data, size *= 2) ) {
-            delete[] data;
-            throw new Deq::ErrAlloc;
-        }
+void Deq::Dequeue::push_back(unsigned long long elem) {
+    std::cout<<"head = "<<head<<std::endl<<"tail  = "<<tail<<std::endl<<"data = ";
+    for(size_t i = 0; i < size; i++) std::cout<<data[i]<<" ";
+    std::cout<<std::endl;
+    size_t temp_ptr = (tail + 1) % size;
+    if( (head == (size - 1) && temp_ptr == 0) || temp_ptr - head == 1) {
+        expand_data_size();
+        temp_ptr = (tail + 1) % size;
     }
+    data[tail] = elem;
+    tail = temp_ptr;
 }
 
-int Deq::Dequeue::pop_back() {
+long long Deq::Dequeue::pop_back() {
+    std::cout<<"head = "<<head<<std::endl<<"tail  = "<<tail<<std::endl<<"data = ";
+    for(size_t i = 0; i < size; i++) std::cout<<data[i]<<" ";
+    std::cout<<std::endl;
     if(head == tail) {
         return -1;
     }
-    tail = (tail - 1) % Deq::CHANK_SIZE;
+    tail = (size + tail - 1) % size;
     return data[tail];
+}
+
+void Deq::Dequeue::expand_data_size() {
+    unsigned long long *temp = new unsigned long long[size *= 2];
+    if(!temp) {
+        delete[] data;
+        throw new Deq::ErrAlloc;
+    }
+    memmove(temp, data, size*sizeof(data[0]));
+    delete[] data;
+    data = temp;
 }
