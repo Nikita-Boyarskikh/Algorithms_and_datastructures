@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
     char command;
     std::string str;
     Set<std::string> set;
+    Hasher<std::string> h;
     while( (std::cin >> command) && std::cin.ignore() && getline(std::cin, str) ) {
         switch( command ) {
           case '+':
@@ -112,9 +113,9 @@ size_t Hasher<T>::operator() ( T str, size_t size, bool type )
 {
     size_t hash = 0;
     for( size_t i = 0; i < str.size(); i++ ) {
-        hash = ( 2*( hash*(type ? HASH_CONST1 : HASH_CONST2) + str[i] ) + 1) % size;
+        hash = hash*(type ? HASH_CONST1 : HASH_CONST2) + str[i];
     }
-    return hash;
+    return hash % size;
 }
 
 template <class T, class H>
@@ -133,31 +134,33 @@ bool Set<T, H>::add( T data )
 {
     if( elems >= size * 3/4 ) {
         expand();
+//        for(int o = 0; o < size; o++) std::cout << arr[o] << ' ';
+//        std::cout << std::endl;
     }
 
-    bool find = false;
+    bool finded = false;
     size_t indx;
     size_t hash1 = _hasher( data, size, 0 );
     size_t hash2 = _hasher( data, size, 1 );
     for( size_t i = 0; i < size; i++ ) {
-        size_t hash = (hash1 + i*hash2) % size;
+        size_t hash = (hash1 + i*hash2 ) % size;
         if( arr[hash] == data ) {
             return false;
         }
-
-        if( arr[hash] == NIL || arr[hash] == DEL && !find ) {
+        if( arr[hash] == NIL || arr[hash] == DEL ) {
             indx = hash;
-            find = true;
+            finded = true;
+            if( arr[hash] == NIL ) {
+                break;
+            }
         }
     }
 
-    if( find ) {
+    if( finded ) {
         arr[indx] = data;
         elems++;
-for( int a= 0; a < size; a++) std::cout<<arr[a]<<' ';
-        return true;
     }
-    return false;
+    return finded;
 }
 
 template <class T, class H>
